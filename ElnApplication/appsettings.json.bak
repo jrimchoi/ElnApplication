@@ -1,0 +1,82 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "Databases": {
+    "Eln": "Data Source = (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 10.151.149.246)(PORT = 1521)))(CONNECT_DATA=(SID=elndev))); User Id = eln; Password = eln123; Connection Timeout = 3;",
+    "ElnIF": "Data Source = (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 10.151.149.246)(PORT = 1521)))(CONNECT_DATA=(SID=elndev))); User Id = ELN_IF; Password = Eln2021; Connection Timeout = 3;"
+  },
+  "Urls": {
+    "PPSamplePath": "/protocols/Hanwha_Project/Actions/Experiment%20add%20sample/Experiment%20add%20sample"
+  },
+  "Ports": {
+    "PPPort": "9943"
+  },
+  "Centers": { // ELN_IF 데이터베이스의 V_ELNDEPT의 코드(DEPT_CD)가 동기화되어야 합니다.
+    "D10022": {
+      "Description": "미래기술연구센터",
+      "Alias": "미래"
+    },
+    "D10027": {
+      "Description": "공정기술연구센터",
+      "Alias": "공정"
+    },
+    "D10028": {
+      "Description": "PO테크센터",
+      "Alias": "PO"
+    },
+    "D10029": {
+      "Description": "PVC테크센터",
+      "Alias": "PVC"
+    },
+    "D10032": {
+      "Description": "특허팀",
+      "Alias": "특허"
+    },
+    "D10033": {
+      "Description": "촉매기술연구센터",
+      "Alias": "촉매"
+    },
+    "D10034": {
+      "Description": "중합기술연구센터",
+      "Alias": "중합"
+    },
+    "D10035": {
+      "Description": "제품기술연구센터",
+      "Alias": "제품"
+    },
+    "D10036": {
+      "Description": "석유수지 상업화 TFT",
+      "Alias": "석유"
+    },
+    "D10037": {
+      "Description": "PA12 개발 TFT",
+      "Alias": "PA12"
+    },
+    "D10038": {
+      "Description": "PEKK 개발 TFT",
+      "Alias": "PEKK"
+    },
+    "D10039": {
+      "Description": "수소기술연구센터",
+      "Alias": "수소"
+    },
+    "XX0012": {
+      "Description": "연구지원팀",
+      "Alias": "지원"
+    },
+    "D10014": {
+      "Description": "연구기획팀",
+      "Alias": "기획"
+    },
+    "D10016": {
+      "Description": "분석팀",
+      "Alias": "분석"
+    }
+  }
+}

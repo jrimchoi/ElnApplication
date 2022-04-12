@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.title</title>
+    <link rel="shortcut icon" href="~/favicon.ico">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/bootstrap-show-modal.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</head>
+<body>
+    <header>
+        <div class="flex-container-horizontal">
+            <img alt="3ds-Biovia" src="~/img/logo.png">
+            <div class="flex-container-horizontal">
+                <div style="width: 100px; padding: 10px 10px 0;">
+                    <h1 style="font-size: 18px; font-style: italic; margin: 0; font-weight: normal; color: white; line-height: 1.1; ">Notebook</h1>
+                </div>
+                <div style="background-color:white; width:0.5px; margin:15px 0px;" />
+            </div>
+            <div class="flex-container-horizontal package-header">
+                <div style="width: 350px; margin-left: 10px; ">
+                    <div style="font-size: 20px; color: white;">@ViewBag.title</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+
+    <script language="javascript">
+        function openWindow(href, name, popWidth, popHeight) {
+            var winWidth = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+            var winHeight = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+            var winX = window.screenLeft != undefined ? window.screenLeft : screen.left;
+            var winY = window.screenTop != undefined ? window.screenTop : screen.top;
+
+            var popX = winX + (winWidth - popWidth) / 2;
+            var popY = winY + (winHeight - popHeight) / 2;
+
+            window.open(href, name, "width=" + popWidth + "," + "height=" + popHeight + "," + "top=" + popY + "," + "left=" + popX + "," + "resizable=1" + "," + "scrollbars=1");
+
+            return false; // false 하지않으면 href도 실행됨
+        }
+
+        function changeSerialize(values, k, v) {
+            var found = false;
+            for (i = 0; i < values.length && !found; i++) {
+                if (values[i].name == k) {
+                    values[i].value = v;
+                    found = true;
+                }
+            }
+            if (!found) {
+                values.push(
+                    {
+                        name: k,
+                        value: v
+                    }
+                );
+            }
+            return values;
+        }
+    </script>
+</body>
+</html>

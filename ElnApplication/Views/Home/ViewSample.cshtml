@@ -1,0 +1,62 @@
+﻿@using System.Globalization
+@{ Elnprj06 obj = ViewData["Object"] as Elnprj06; }
+<table class="table table-bordered board" style="font-size: 9pt; font-weight: bold; width: 600px; margin: auto;">
+    <colgroup>
+        <col style="width: 20%;">
+        <col style="width: 30%;">
+        <col style="width: 20%;">
+        <col style="width: 30%;">
+    </colgroup>
+    <tbody>
+        <tr>
+            <td>샘플번호</td>
+            <td style="vertical-align: middle;">@obj.SAMPLE_NUMBER</td>
+            <td>관리번호</td>
+            <td style="vertical-align: middle;">@obj.ATTRIBUTE_NUMBER</td>
+        </tr>
+        <tr>
+            <td>샘플명</td>
+            <td style="vertical-align: middle;">@obj.SAMPLE_NAME</td>
+            <td>등록일</td>
+            <td style="vertical-align: middle;">@obj.CREATE_DATE.ToString("yyyy-MM-dd hh:mm tt", CultureInfo.InvariantCulture)</td>
+        </tr>
+        <tr>
+            <td>샘플정보</td>
+            <td colspan="3">@obj.CONTENT</td>
+        </tr>
+        <tr>
+            <td>사용시약</td>
+            <td colspan="3">
+                <div class="shadow-sm p-3 rounded" style="width: 100%;">
+                    <table id="tableReagent" class="table table-borderless option-table" style="width: 100%; margin-left: auto; margin-right: auto; font-size: 8pt; ">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">사용</th>
+                                <th style="width: 55%">시약명</th>
+                                <th style="width: 15%">사용량</th>
+                                <th style="width: 15%">단위</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody_reagent" style="height: 130px;">
+                            @foreach (var reagent in @ViewData["ReagentList"] as List<ReagentModel>)
+                            {
+                                <tr style="@(reagent.CUSTOM ? "background-color: #FFFF9E" : "")">
+                                    <td style="width: 15%; vertical-align: middle;"><input type="checkbox" @(reagent.CHECK ? "checked" : "") onClick="return false;" /></td>
+                                    <td style="width: 55%; text-align: left;">@reagent.PRODUCT_NAME</td>
+                                    <td style="width: 15%; text-align: center;">@reagent.USAGE</td>
+                                    <td style="width: 15%; text-align: center;">@reagent.UNIT</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>사용장비</td>
+            <td style="vertical-align: middle;">@obj.EQUIPMENT_DATA</td>
+            <td>분석의뢰</td>
+            <td style="vertical-align: middle;">@(obj.ANAL_REQ_YN == "Y" ? "의뢰" : "자체분석")</td>
+        </tr>
+    </tbody>
+</table>

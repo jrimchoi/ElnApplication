@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="divTitle"></title>
+    <link rel="shortcut icon" href="~/favicon.ico">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/bootstrap-show-modal.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</head>
+<body>
+    <header>
+        <div class="flex-container-horizontal">
+            <img alt="3ds-Biovia" src="~/img/logo.png">
+            <div class="flex-container-horizontal">
+                <div style="width: 150px; padding: 10px 10px 0;">
+                    <h1 style="font-size: 18px; font-style: italic; margin: 0; font-weight: normal; color: white; line-height: 1.1;">Notebook</h1>
+                </div>
+                <a style="padding: 17.6px 14.5px; font-size: 25px; color: white;" class="header-icon-back fal fa-arrow-circle-left" onclick="window.close();"></a>
+                <div style="background-color:white; width:0.5px; margin:15px 0px;" />
+            </div>
+            <div class="flex-container-horizontal package-header">
+                <div style="width: 350px; margin-left: 10px; ">
+                    <div id="divSubTitle" style="font-size: 20px; color: white;">샘플 정보 조회</div>
+                    <div id="divExperimentNumber" style="font-size: 14px; color: white;">EXP-21-AA1009</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <div class="wrap-loading display-none">
+        <div><img src="~/img/loading.gif" /></div>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+
+    <script language="javascript">
+        function openWindow(href, name, popWidth, popHeight, resizable) {
+            var winWidth = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+            var winHeight = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+            var winX = window.screenLeft != undefined ? window.screenLeft : window.screenX;
+            var winY = window.screenTop != undefined ? window.screenTop : window.screenY;
+
+            var popX = winX + (winWidth - popWidth) / 2;
+            var popY = winY + (winHeight - popHeight) / 2;
+
+            window.open(href, name, "width=" + popWidth + "," + "height=" + popHeight + "," + "top=" + popY + "," + "left=" + popX + "," + "resizable=" + resizable + "," + "scrollbars=1");
+
+            return false; // false 하지 않으면 href도 실행됨
+        }
+    </script>
+</body>
+</html>

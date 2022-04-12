@@ -1,0 +1,257 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+* {
+    font-family: 'Malgun Gothic', arial, gulim, dotum, sans-serif;
+    !important;
+}
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+header {
+    width: 100%;
+    height: 60px;
+    background-color: #0077c8;
+    position: absolute;
+}
+
+.main {
+    margin-top: 60px;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+}
+
+.wrap-loading { /*화면 전체를 어둡게 합니다.*/
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.2);
+}
+
+    .wrap-loading div { /*로딩 이미지*/
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: -21px;
+        margin-top: -21px;
+    }
+
+.display-none { /*감추기*/
+    display: none;
+}
+
+#content-wrapper {
+    width: 100%;
+    height: 100%;
+    position:fixed;
+}
+
+    #content-wrapper .search-view {
+        width: 100%;
+        background: #d7e5ef;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5) inset;
+    }
+
+    #content-wrapper .content-view {
+        background: #f8f9fa;
+        width: 100%;
+        height: 100%;
+        overflow: scroll;
+    }
+
+.header-icon-back {
+    cursor: pointer;
+}
+    .header-icon-back:hover {
+        background: #006dad;
+    }
+
+.flex-container-horizontal { /* div 가로 정렬 시 사용 */
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+
+.flex-container-vertical { /* div 세로 정렬 시 사용 */
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+
+.package-header{
+    align-items: center;
+    height: 100%;
+}
+
+table {
+    table-layout: fixed;
+    border-collapse:collapse;
+}
+
+td.middle { /* ie에서는 인라인스타일로 정의해야 함. */
+    vertical-align: middle;
+}
+
+    table.option-table thead {
+        display: table; /* to take the same width as tr */
+        width: calc(100% - 17px); /* - 17px because of the scrollbar width */
+    }
+
+    table.option-table tbody {
+        display: block; /* to enable vertical scrolling */
+        overflow-y: scroll; /* keeps the scrollbar even if it doesn't need it; display purpose */
+    }
+
+    table.option-table thead {
+        border-bottom: 0.5px solid #d3d3d3;
+    }
+
+    table.option-table tbody tr {
+        border-bottom: 0.5px solid #d3d3d3;
+    }
+
+    table.option-table tr {
+        display: table; /* display purpose; th's border */
+        width: 100%;
+        box-sizing: border-box; /* because of the border (Chrome needs this line, but not FF) */
+    }
+
+    table.option-table th, td {
+        text-align: center;
+    }
+
+    table.option-table select {
+        text-align: center;
+    }
+
+    table.option-table td input{
+        width: 100%;
+    }
+
+table.table-bordered {
+    border: 0.5px solid #d3d3d3;
+    margin-top: 20px;
+}
+
+    table.table-bordered > thead > tr > th {
+        border: 0.5px solid #d3d3d3;
+    }
+
+    table.table-bordered > tbody > tr > td {
+        border: 0.5px solid #d3d3d3;
+    }
+
+.search-view table > tbody > tr > td {
+    padding: 5px;
+}
+    
+    .search-view td {
+        vertical-align: middle;
+        text-align: left;
+    }
+    
+    .search-view td > input {
+        width: 100%;
+        height: 20px;
+        border: none;
+    }
+
+    .search-view td > select {
+        width: 100%;
+        height: 20px;
+        border: none;
+    }
+
+table.board > tbody > tr > td:nth-child(odd) {
+    vertical-align: middle;
+    background-color: rgba(0, 120, 200, 0.1);
+}
+/*.modal-backdrop {
+    z-index: -1 !important;
+}*/
+
+.dojoxGridRow.highlightRow .dojoxGridCell {
+    background-color: #FFFF9E;
+}
+
+.transparent-button {
+    background-color: transparent !important;
+    background-image: none !important;
+    border-color: transparent;
+    border: none;
+    pointer-events: none;
+}
+
+.tit_span {
+    font-weight: bold;
+    display: inline-block;
+    margin-left: 10px;
+    margin-top: 7px
+}

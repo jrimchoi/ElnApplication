@@ -1,0 +1,709 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var rootUrl = HttpContextAccessor.HttpContext.Request.Scheme + "://" + HttpContextAccessor.HttpContext.Request.Host.Value; // https://dev-eln.hanwhasolutions.com
+    var sampleUrl = rootUrl + HttpContextAccessor.HttpContext.Request.PathBase; // https://dev-eln.hanwhasolutions.com/samples
+    var ppUrl = rootUrl + ":" + Constants.PPPort; // https://dev-eln.hanwhasolutions.com:9943
+    var ppSampleUrl = ppUrl + Constants.PPSamplePath; // https://dev-eln.hanwhasolutions.com:9943/protocols/Hanwha_Project/Actions/Experiment%20add%20sample/Experiment%20add%20sample
+}
+
+<link rel="stylesheet" href="~/api/dojo/dojox/grid/enhanced/resources/claroEnhancedGrid.css" />
+<link rel="stylesheet" href="~/api/dojo/dijit/themes/claro/claro.css" />
+<link rel="stylesheet" href="~/api/dojo/dojo/resources/dojo.css" />
+<script src="//cdn.rawgit.com/rainabba/jquery-table2excel/1.1.0/dist/jquery.table2excel.min.js"></script>
+<script>
+    dojoConfig = {
+        parseOnLoad: true,
+        async: true
+    };
+</script>
+<script type="text/javascript" src="~/api/dojo/dojo/dojo.js"></script>
+
+<style>
+    .dojoxGridHeader .dojoxGridCell {
+        text-align: center !important;
+        font-size: 12px;
+        font-weight: bold;
+    }
+</style>
+
+<div id="content-wrapper" class="flex-container-vertical">
+    <div class="search-view">
+        <form id="formSearch" action='@Url.Action("SearchSampleInfo", "Home")' method="get" autocomplete="off">
+            <table class="table table-borderless" style="font-size: 9pt; font-weight: bold; width: 1280px; margin-top: 10px;">
+                <colgroup>
+                    <col style="width:3%">
+                    <col style="width:8%">
+                    <col style="width:14%">
+                    <col style="width:3%">
+                    <col style="width:8%">
+                    <col style="width:14%">
+                    <col style="width:3%">
+                    <col style="width:8%">
+                    <col style="width:14%">
+                    <col style="width:3%">
+                    <col style="width:8%">
+                    <col style="width:14%">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td>샘플번호</td>
+                        <td><input id="inputSampleNumber" name="SAMPLE_NUMBER" type="text" /></td>
+                        <td></td>
+                        <td>센터명</td>
+                        <td>
+                            <select id="selectCenter" name="CENTER_CODE" style="width: 100%; height: 25px; text-align: center;">
+                                @foreach (var center in ViewData["CenterList"] as List<ElnDept>)
+                                {
+                                    <option value="@center.DEPT_CD">@center.DEPT_NAME</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>과제명</td>
+                        <td>
+                            <select id="selectProject" name="PROJECT_NAME" style="width: 100%; height: 25px; text-align: center;">
+                                <option value="@null">전체</option>
+                            </select>
+                        </td>
+                        <td></td>
+                        <td>연구노트명</td>
+                        <td><input id="inputExperimentName" name="EXPERIMENT_NAME" type="text" /></td>
+                        <td></td>
+                        <td>담당자</td>
+                        <td><input id="inputUserName" name="USER_NAME" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>샘플정보</td>
+                        <td><input id="inputSampleInfo" name="CONTENT" type="text" /></td>
+                        <td></td>
+                        <td>등록일자</td>
+                        <td colspan="3" style="vertical-align:middle;">
+                            <div style="width: 100%;">
+                                <span>FROM</span>
+                                <input id="input_create_date_start" name="create_date_start" type="text" class="datepicker" style="width: 30%;" readonly />
+                                <span>To</span>
+                                <input id="input_create_date_end" name="create_date_end" type="text" class="datepicker" style="width: 30%; height: 20px;" readonly />
+                                <span><input id="checkDate" type="checkbox" /> 활성화</span>
+                            </div>
+                        </td>
+                        <td><span><input id="checkMy" type="checkbox" /> 내 샘플만 확인</span></td>
+                        <td colspan="3">
+                            <div style="width: 100%;">
+                                <button id="btnSearch" type="submit" class="btn btn-primary btn-sm" style="width: 60px; font-size: 12px; margin-left: 5px; margin-right: 5px;">조회</button>
+                                <button id="btnInit" type="button" class="btn btn-primary btn-sm" style="width: 60px; font-size: 12px; margin-left: 5px; margin-right: 5px; " onclick="initialize();">초기화</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+    <div class="content-view">
+        <div class="flex-container-horizontal" style="width: 100%; height: 7%;">
+
+            <div id="divExport" class="flex-container-horizontal" style="width: 50%; align-items: flex-end; justify-content: flex-start; padding-left: 20px;">
+                <span style="font-weight: bold;">▶ 조회 List</span><span id="spSearchTopCnt" style="font-weight: bold; margin-left: 10px;"></span>
+                <!--<button id="btnExport" type="button" class="btn btn-primary btn-sm" style="width: 60px; font-size: 12px; " onclick="exportAll();">Export</button>-->
+            </div>
+
+            <div id="divControl" class="flex-container-horizontal" style="width: 50%; align-items: flex-end; justify-content: flex-end; padding-right: 20px;">
+                <button id="btnAdd" type="button" class="btn btn-primary btn-sm" style="width: 50px; font-size: 12px; margin-left: 5px; margin-right: 5px; " onclick="return openWindow('@Url.Action("AddSample", "Home")', '샘플 등록', 650, 570, 0);">추가</button>
+                <button id="btnMod" type="button" class="btn btn-primary btn-sm" style="width: 50px; font-size: 12px; margin-left: 5px; margin-right: 5px; " onclick="modifyItem();">수정</button>
+                <button id="btnDel" type="button" class="btn btn-primary btn-sm" style="width: 50px; font-size: 12px; margin-left: 5px; margin-right: 5px;" onclick="deleteItem();">삭제</button>
+                <button id="btnAdd" type="button" class="btn btn-primary btn-sm" style="width: 70px; font-size: 12px; margin-left: 50px; margin-right: 0px; " onclick="applyEln();">ELN 적용</button>
+                <button id="btnExport" type="button" class="btn btn-primary btn-sm" style="width: 100px; font-size: 12px; margin-left: 5px; margin-right: 0px; " onclick="exportAll();">Excel 내려받기</button>
+            </div>
+        </div>
+
+        
+        <div class="claro" style="padding: 10px 20px; font-size: 13px; width: 100%; height: 93%;">
+            <div id="gridDiv"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalReagent" tabindex="-1" role="dialog" aria-labelledby="reagentModalLabel" aria-hidden="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content rounded-0">
+            <div class="modal-header rounded-0" style="height: 60px; padding: 0; background-color: #0077c8;">
+                <div class="flex-container-horizontal" style="height: 100%;">
+                    <img alt="3ds-Biovia" src="~/img/logo.png">
+                    <div class="flex-container-horizontal">
+                        <div style="width: 100px; padding: 10px 10px 0;">
+                            <h1 style="font-size: 18px; font-style: italic; margin: 0; font-weight: normal; color: white; line-height: 1.1; ">Notebook</h1>
+                        </div>
+                        <!--<div style="background-color:white; width:0.5px; margin:15px 0px;" />-->
+                    </div>
+                    <div class="flex-container-horizontal package-header">
+                        <div style="width: 350px; margin-left: 10px; ">
+                            <div style="font-size: 20px; color: white;">샘플 조회</div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="close" style="margin: 0;" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="background: #f8f9fa;">
+                <div id="modalContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script language="javascript">
+    var grid;
+    var highlightRowNumber = null;
+    var curChkMyExperiment = true;
+    var gridRowCnt;
+
+    $(document).ready(function () {
+
+        $.datepicker.setDefaults({ dateFormat: "yy-mm-dd", closeText: "닫기", currentText: "오늘", prevText: '이전 달', nextText: '다음 달', monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], dayNames: ['일', '월', '화', '수', '목', '금', '토'], dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'], dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], weekHeader: "주", yearSuffix: '년' });
+        $('.datepicker').datepicker();
+
+        @if (HttpContextAccessor.HttpContext.Session.GetString(Constants.SESSION_KEY_USER_LEVEL) == Constants.USER_LEVEL_CTO)
+        {
+            @:$('#selectCenter').prepend('<option value="@null">전체</option>');
+        }
+
+        initComponent();
+    });
+
+    $('#formSearch').submit(function (event) {
+        event.preventDefault(); // 자동 submit 방지*/
+
+        //2022-01-18 CMS 기존
+        searchData(false);
+
+
+    });
+
+    function searchData(chkMyExperiment, highlightSampleNumber) {
+        highlistRowNumber = highlightSampleNumber; // 하이라이트 표시 변수
+        var form = $('#formSearch');
+        var formData = form.serialize();
+        formData += '&my_user_id=' + '@ViewData["UserId"]';
+        formData += '&my_check=' + $('#checkMy').is(":checked");
+        if (curChkMyExperiment && chkMyExperiment) {
+            formData += '&my_experiment_number=' + '@ViewData["ExperimentNumber"]';
+            curChkMyExperiment = chkMyExperiment;
+        } else {
+            curChkMyExperiment = false;
+        }
+
+        formData += '&mode=' + '@ViewData["ViewMode"]';
+        $.ajax({
+            url: form.attr("action"),
+            type: form.attr("method"),
+            data: formData,
+            dataType: "json",
+        }).done(function (response) {
+            if (response.Code == @ConstantsApi.CODE_SUCESS) {
+                grid.setStore(new dojo.data.ItemFileReadStore(
+                    { data: { items: response.Data } }));
+                grid.selection.deselectAll();
+
+                $('#spSearchTopCnt').text(gfn_grdListCnt(response.Data.length));
+
+                gridRowCnt = response.Data.length;
+            }else{
+                alertModal("확인", response.Message);
+                $('#spSearchTopCnt').text("");
+
+                gridRowCnt = 0;
+            }
+
+            grid.resize();
+        });
+    }
+
+    $('#checkMy').on("change", function () {
+        $('#inputUserName').prop("disabled", $(this).is(":checked"));
+    });
+
+    $('#checkDate').on("change", function () {
+        $('#input_create_date_start').prop("disabled", !$(this).is(":checked"));
+        $('#input_create_date_end').prop("disabled", !$(this).is(":checked"));
+    });
+
+    $('#selectCenter').on("change", function () {
+        $('#selectProject').children('option').remove();
+        $('#selectProject').append('<option value="@null">전체</option>');
+
+        $.ajax({
+            url: '@Url.Action("GetProjectListForCenter", "Home")',
+            type: "GET",
+            data: { "CENTER_CODE": $(this).val() },
+            dataType: "json"
+        }).done(function (response) {
+            if (response.Code == @ConstantsApi.CODE_SUCESS) {
+                var dataArr = response.Data;
+                dataArr.forEach(function (data) {
+                    $('#selectProject').append('<option value="' + data.PROJECTREFERENCES + '">' + data.PROJECT_NAME + '</option>');
+                });
+            }
+        });
+    });
+
+    function initComponent() {
+        $('#inputSampleNumber').val("");
+        $('#selectCenter').prop('selectedIndex', 0).change();
+        $('#inputProjectName').val("");
+        $('#inputUserName').val("");
+        $('#inputSampleInfo').val("");
+        $('#input_create_date_start').val("");
+        $('#input_create_date_end').val("");
+        $('#checkDate').prop('checked', false).change();
+        $('#checkMy').prop('checked', false).change();
+
+        @if ((Constants.ViewMode)ViewData["ViewMode"] == Constants.ViewMode.Control)
+        {
+            @:$('#divTitle').text('@ViewData["ExperimentNumber"]' + ' - 샘플 정보 입력');
+            @:$('#divSubTitle').text('샘플 정보 입력');
+            @:$('#divExperimentNumber').text('@ViewData["ExperimentNumber"]');
+        }
+        else
+        {
+            @:$('#divTitle').text('샘플 정보 조회');
+            @:$('#divSubTitle').text('샘플 정보 조회');
+            @:$('#divExperimentNumber').hide();
+            @:$('#divControl').css("visibility", "hidden"); // 공간은 남김
+        }
+    }
+
+    // 시약정보 null 체크 필요
+    function createModal(obj) {
+        var index = $(obj).attr('data-value');
+        var cellObj = grid.getItem(index);
+
+        $('#modalLabel').text(cellObj["SAMPLE_NUMBER"] + " 시약정보");
+
+        var data = {
+            "SAMPLE_NUMBER": cellObj["SAMPLE_NUMBER"],
+            "SAMPLE_NAME": cellObj["SAMPLE_NAME"],
+            "ATTRIBUTE_NUMBER": cellObj["ATTRIBUTE_NUMBER"],
+            "REAGENT_DATA": cellObj["REAGENT_DATA"],
+            "EQUIPMENT_DATA": cellObj["EQUIPMENT_DATA"],
+            "ANAL_REQ_YN": cellObj["ANAL_REQ_YN"],
+            "CONTENT": cellObj["CONTENT"],
+            "CREATE_DATE": cellObj["CREATE_DATE"]
+        };
+        $('#modalContent').load('@Url.Action("PartialViewSample", "Home")', data);
+        $('#modalReagent').appendTo("body").modal("show");
+    }
+
+    function initialize() {
+        initComponent();
+        @if ((Constants.ViewMode)ViewData["ViewMode"] == Constants.ViewMode.View)
+        {
+            @:searchData(false);
+        }
+        else {
+            @:curChkMyExperiment = true;
+            @:searchData(true);
+        }
+    }
+
+    function exportAll() {
+        
+        if (gridRowCnt == 0) {
+            alertModal("확인", "조회 후 Excel 내려받기를 진행하세요.");
+            return;
+        }
+
+        grid.exportGrid("csv", { writerArgs: { separator: "`" } }, function (result) {
+            var arrResult = result.split("\n");
+            var excelData = "";
+            arrResult.forEach(function (item) {
+                var arrItem = item.split("`");
+                try {
+                    var strReagent = arrItem[8].replace(/""/g, "\"");
+                    strReagent = strReagent.substring(1, strReagent.length-1);
+                    var jsonObj = JSON.parse(strReagent);
+                    var dataArr = jsonObj["data"];
+
+                    var dataStr = "";
+                    dataArr.forEach(function (data, index) {
+                        if (data.CHECK == "true") {
+                            dataStr += "[" + data.PRODUCT_NAME + " / ";
+                            dataStr += data.USAGE + data.UNIT + "]";
+                        }
+                    });
+
+                    //console.log(dataStr + " //// " + encodeURIComponent(dataStr));
+                    //2022-01-19 CMS 특수문자 , 때문에 엑셀 다운로드시 이상 현상
+                    //arrItem[8] = dataStr;
+                    arrItem[8] = encodeURIComponent(dataStr);
+                } catch (e) {
+                }
+
+                excelData += arrItem.slice(0, arrItem.length - 1).join(",");
+                excelData += "\n";
+            });
+
+            //console.log("excelData : ", excelData);
+            @*$.ajax({
+                url: '@Url.Action("SetExportSampleData", "Home")',
+                type: "POST",
+                data: { "JSON_DATA": str },
+                dataType: "json"
+            }).done(function (response) {
+                if (response.Code == @ConstantsApi.CODE_SUCESS) {
+                    console.log(response.Data);
+                }
+            });*@
+
+            $.ajax({
+                url: '@Url.Action("SetExportSampleData", "Home")',
+                type: "POST",
+                data: { "JSON_DATA": excelData },
+                dataType: "json"
+            }).done(function (response) {
+                if (response.Code == @ConstantsApi.CODE_SUCESS) {
+                    console.log(response.Data);
+
+                    var strExcelFileName = $('#divExperimentNumber').text() + "_" + $('#divSubTitle').text();
+
+                    var paramData = {
+                          "ExcelFileName": strExcelFileName
+                        , "Experimentnumber": $('#divExperimentNumber').text()
+                        , "SectionTitle": $('#divSubTitle').text()
+                        , "Queryid": ""
+                        , "exportSeqKey": response.Data
+                    };
+
+                    console.log("paramData : ", paramData);
+
+                    $.ajax({
+                        url: '@ppUrl' + '/protocols/Hanwha_Project/COMMON_EXCEL_DOWNLOAD?$streamdata=*&$format=json',
+                        type: "POST",
+                        data: paramData,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        beforeSend: function () {
+                            $('.wrap-loading').removeClass('display-none');
+                        },
+                        success: function (resultData) {
+                            console.log("downloaded successfully");
+                            $('.wrap-loading').addClass('display-none');
+                            //alertModal("확인", "다운로드 처리 되었습니다.");
+
+                            var url = resultData.ResultFiles[0];
+                            location.href = url;
+                        },
+                        error: function (request, status, error) {
+                            $('.wrap-loading').addClass('display-none');
+                            if (request.status == 0)
+                                alertModal("에러", "세션정보가 없습니다. 페이지를 새로고침해주세요.");
+                            else if (request.status == 401)
+                                alertModal("에러", "인증에 실패했습니다. 페이지를 새로고침해주세요.");
+                            else
+                                alertModal("에러", request.responseText);
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function modifyItem() {
+        var items = grid.selection.getSelected();
+
+        if (items.length <= 0) {
+            alertModal("확인", "수정할 항목을 선택해주세요.");
+            return false;
+        }
+        if (items.length > 1) {
+            alertModal("확인", "수정은 한 항목만 가능합니다.");
+            return false;
+        }
+        var chkModify = true;
+        if ('@ViewData["UserId"]' != items[0].USER_ID) {
+            alertModal("주의", "다른 담당자가 작성한 샘플은 수정할 수 없습니다.");
+            chkModify = false;
+        } else if ('@ViewData["ExperimentNumber"]' != items[0].EXPERIMENT_NUMBER) {
+            var msg = '다른 연구노트에 작성된 샘플은 수정할 수 없습니다.\n';
+            msg += '해당 연구노트(';
+            msg += '<a href="' + '@sampleUrl' + '?experimentnumber=' + items[0].EXPERIMENT_NUMBER + '"' + ' target="_blank">' + items[0].EXPERIMENT_NUMBER + '</a>';
+            msg += ')에서 수정해주세요.';
+            alertModal("확인", msg);
+            chkModify = false;
+        }
+        if (chkModify) {
+            openWindow('@Url.Action("ModifySample", "Home")' + "?eai_seq=" + items[0].EAI_SEQ, '샘플 수정', 650, 570, 0);
+        }
+    }
+
+    function deleteItem() {
+        var items = grid.selection.getSelected();
+        var eaiSeqs = "";
+        var applied = 0;
+        var others = 0;
+        if (items.length <= 0) {
+            alertModal("확인", "삭제할 항목을 선택해주세요.");
+            return false;
+        }
+        var chkDelete = true;
+        for(let i = 0; i < items.length; i++) {
+
+            if (items.length > 1) {
+                //alertModal("확인", "삭제는 한 항목만 가능합니다.");
+                //return false;
+            }
+            if (items[i].ELN_YN == "Y") {
+                //alertModal("확인", "연구노트에 적용된 항목은 삭제할 수 없습니다.");
+                applied++;
+                chkDelete = false;
+                continue;
+                //return false;
+            }
+            if ('@ViewData["UserId"]' != items[i].USER_ID) {
+                //alertModal('주의', '다른 담당자가 작성한 샘플은 삭제할 수 없습니다.');
+                chkDelete = false;
+                others++;
+                continue;
+            }
+            eaiSeqs += "," + items[i].EAI_SEQ;
+        }
+        if (chkDelete) {
+            eaiSeqs = eaiSeqs.substring(1);
+            if (alertConfirm("주의", "정말로 삭제하시겠습니까?", "확인", "취소", function () {
+                var formData = "eaiseqs=" + eaiSeqs;
+                $.ajax({
+                    url: '@Url.Action("DeleteSample", "Home")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "json"
+                }).done(function (response) {
+                    if (response.Code == @ConstantsApi.CODE_DATABASE_SUCCESS_DELETE) {
+                        alertModal("확인", "삭제하였습니다");
+                        searchData(true);
+                    } else {
+                        alertModal("확인", response.Message);
+                    }
+                });
+            }));
+        }
+        else {
+            var msg = "";
+            if(applied != "") msg += "["+applied+"개]" + " 연구노트에 적용된 항목은 삭제할 수 없습니다<br>"
+            if(others != "") msg += "["+others+"개]" + " 다른 담당자가 작성한 샘플은 삭제할 수 없습니다<br>"
+            alertModal("확인", msg);
+        }
+    }
+     
+    function copyItem(obj) {
+        var index = $(obj).attr('data-value');
+        var cellObj = grid.getItem(index);
+        if (alertConfirm("확인", "[" + cellObj["SAMPLE_NUMBER"] + "]" + "\n현재 연구노트 샘플정보로 복사하시겠습니까?", "확인", "취소", function () {
+            openWindow('@Url.Action("CopySample", "Home")' + "?copy_eai_seq=" + cellObj["EAI_SEQ"], '샘플 복사', 650, 570, 0);
+        }));
+    }
+
+    function applyEln() {
+        var items = grid.selection.getSelected();
+
+        var filterItems = items.filter(function (data) {
+            return data.EXPERIMENT_NUMBER != '@ViewData["ExperimentNumber"]';
+        });
+        if (filterItems.length > 0) {
+            alertModal("주의", "다른 연구노트에 작성된 샘플은 적용할 수 없습니다.\n해당 연구노트로 이동하여 적용해주세요.");
+            return false;
+        }
+        var origLength = items.length;
+        var dataStr = "";
+        items = items.filter(function (data) { // 서브미션 여부 필터
+            return data.SUBMISSION_YN != "Y";
+        });
+
+        items.forEach(function (data, index) {
+            dataStr += data.EAI_SEQ;
+            if (items.length - 1 > index) {
+                dataStr += ",";
+            }
+        });
+
+        var formData = { "Experimentnumber": '@ViewData["ExperimentNumber"]', "Eln_seq": dataStr };
+
+        // 필수 : xhrFields - withCredentials 쿠키 함께 보내줘야 함
+        if (alertConfirm("확인", origLength + "개의 항목을 적용하시겠습니까?", "확인", "취소", function () {
+            $.ajax({
+                url: '@ppSampleUrl',
+                type: "GET",
+                data: formData,
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function () {
+                    $('.wrap-loading').removeClass('display-none');
+                },
+                success: function (response) {
+                    console.log("The item was successfully applied in ELN");
+                    $('.wrap-loading').addClass('display-none');
+                    alertModal("확인", "반영되었습니다.");
+                    searchData(true);
+                },
+                error: function (request, status, error) {
+                    $('.wrap-loading').addClass('display-none');
+                    if (request.status == 0)
+                        alertModal("에러", "세션정보가 없습니다. 페이지를 새로고침해주세요.");
+                    else if (request.status == 401)
+                        alertModal("에러", "인증에 실패했습니다. 페이지를 새로고침해주세요.");
+                    else
+                        alertModal("에러", request.responseText);
+                }
+            });
+        }));
+    }
+
+    function popupClose(chkMyExperiment, refSampleNumber) {
+        searchData(chkMyExperiment, refSampleNumber);
+    }
+
+    // ---------- 그리드 처리 함수 START ----------
+    require([
+        "dojox/grid/EnhancedGrid",
+        "dojox/grid/enhanced/plugins/IndirectSelection",
+        "dojox/grid/enhanced/plugins/exporter/CSVWriter",
+    ],
+        function () {
+            dojo.ready(function () {
+                var layout = [
+                    {
+                        /*noscroll: true,
+                        defaultCell: { width: "300px" },
+                        cells: [
+                            {
+                                name: "샘플번호", field: "SAMPLE_NUMBER", width: "200px", styles: "text-align: center;",
+                                formatter: function (item, rowIndex) {
+                                    return '<a href="javascript:void(0);" onclick="createModal(this);" data-value="' + rowIndex + '"' + '>' + item + '</a>';
+                                }
+                            },
+                            { name: "속성번호", field: "ATTRIBUTE_NUMBER", width: "200px", styles: "text-align: center;" },
+                        ]*/
+                    }, {
+                        defaultCell: { width: "300px" },
+                        cells: [
+                            {
+                                name: "샘플번호", field: "SAMPLE_NUMBER", width: "8%", styles: "text-align: center;",
+                                formatter: function (item, rowIndex) {
+                                    return '<a href="javascript:void(0);" onclick="createModal(this);" data-value="' + rowIndex + '"' + '>' + item + '</a>';
+                                }
+                            },
+                            { name: "샘플명", field: "SAMPLE_NAME", width: "7%", styles: "text-align: center;" },
+                            { name: "관리번호", field: "ATTRIBUTE_NUMBER", width: "6%", styles: "text-align: center;" },
+                            { name: "센터명", field: "CENTER_NAME", width: "7%", styles: "text-align: center;" },
+                            { name: "과제명", field: "PROJECT_NAME", width: "14%", styles: "text-align: center;" },
+                            {
+                                name: "연구노트번호", field: "EXPERIMENT_NUMBER", width: "8%", styles: "text-align: center;",
+                                formatter: function (item) {
+                                    return '<a href="' + '@rootUrl' + '/notebook/experiment/' + item + '"' + ' target="_blank">' + item + '</a>';
+                                }
+                            },
+                            { name: "담당자", field: "USER_NAME", width: "4%", styles: "text-align: center;" },
+                            { name: "샘플정보", field: "CONTENT", width: "12%", styles: "text-align: left; text-overflow:ellipsis; white-space: pre; word-wrap:normal;" },
+                            {
+                                name: "시약정보", field: "REAGENT_DATA", width: "12%", styles: "text-align: left; text-overflow:ellipsis; white-space: pre; word-wrap:normal;",
+                                formatter: function (item) {
+                                    if (item == null) {
+                                        return null;
+                                    }
+                                    var jsonObj = JSON.parse(item);
+                                    var dataArr = jsonObj["data"];
+
+                                    var dataStr = "";
+                                    dataArr.forEach(function (data, index) {
+                                        if(data.CHECK == "true"){
+                                            dataStr += "[" + data.PRODUCT_NAME + " / ";
+                                            dataStr += data.USAGE + data.UNIT + "]";
+                                            if (dataArr.length - 1 > index) {
+                                                dataStr += "\n"
+                                            }
+                                        }
+                                    });
+                                    return dataStr;
+                                }
+                            },
+                            { name: "장비명", field: "EQUIPMENT_DATA", width: "8%", styles: "text-align: center;" },
+                            {
+                                name: "의뢰여부", field: "ANAL_REQ_YN", width: "3.5%", styles: "text-align: center; font-size:10px;",
+                                formatter: function (item) {
+                                    return item == "Y" ? "O" : "X";
+                                }
+                            },
+                            {
+                                name: "ELN적용", field: "ELN_YN", width: "3.5%", styles: "text-align: center; font-size:10px;",
+                                formatter: function (item) {
+                                    return item == "Y" ? "O" : "X";
+                                }
+                            },
+                            {
+                                name: "Submit", field: "SUBMISSION_YN", width: "3.5%", styles: "text-align: center; font-size:10px;",
+                                formatter: function (item) {
+                                    return '<button class="transparent-button" style="height: 30px;">'+ (item == "Y" ? "O" : "X") + '</button>'; // 버튼으로 설정한 이유는 디폴트 높이 설정을 위함
+                                }
+                            },
+                            {
+                                name: "COPY", field: "EAI_SEQ", width: "3.5%", styles: "text-align: center; font-size:10px;",
+                                formatter: function (item, rowIndex) {
+                                    return '<button class="btn btn-primary btn-sm" style="height: 30px; font-size: 10px;" onclick="copyItem(this);" data-value="' + rowIndex + '"' + '>COPY</button>';
+                                }
+                            },
+                        ]
+                    }
+                ];
+
+                // 그리드 초기화
+                grid = new dojox.grid.EnhancedGrid({
+                    id: 'grid',
+                    //store: store,
+                    style: "width: 100%; height: 80%; font-size: 12px;",
+                    structure: layout,
+                    //rowHeight: 40, // 높이를 정하면 자동개행 기능 없어짐 ...으로 출력됨 + white-space: pre 속성이 있는 컬럼의 경우 글자가 많아 높이가 늘어날 경우 하단에 잘려나오는 현상 있음 -> 한 컬럼을 정해 높이를 설정. 가운데 정렬을 위해서 버튼으로 설정
+                    //selectionMode: "single",
+                    //selection 정의 시 총 넓이의 2%는 체크박스로 두는게 좋음
+                    plugins: {
+                        indirectSelection: { headerSelector: true, styles: "text-align: center; @((Constants.ViewMode)ViewData["ViewMode"] == Constants.ViewMode.View ? "display: none;" : "")" }
+                        , exporter: true
+                    }
+                }, dojo.byId('gridDiv'));
+
+                grid.startup();
+
+                dojo.connect(grid, 'onStyleRow', this, function (row) {
+                    var item = grid.getItem(row.index);
+                    if (item && highlistRowNumber) {
+                        var name = grid.store.getValue(item, 'SAMPLE_NUMBER', null);
+                        if (name == highlistRowNumber) {
+                            row.customClasses = row.customClasses + ' highlightRow';
+                        }
+                    }
+                });
+
+                @if ((Constants.ViewMode)ViewData["ViewMode"] == Constants.ViewMode.Control)
+                {
+                    @:searchData(true);
+                } else {
+                    @:grid.layout.setColumnVisibility(13, false); // COPY
+                    @:searchData(false);
+                }
+            });
+        });
+
+    $(window).resize(function () {
+        if (grid !== undefined) {
+            grid.resize();
+        }
+    });
+    // ---------- 그리드 처리 함수 END ----------
+</script>

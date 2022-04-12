@@ -1,0 +1,233 @@
+﻿@{
+    Layout = "_Layout_Popup";
+    Elnprj06 obj = ViewData["Object"] as Elnprj06;
+}
+<div id="content-wrapper">
+    <div class="content-view">
+        <form id="form" action='@Url.Action("RegistSample", "Home")' method="post" autocomplete="off">
+            <input type="hidden" name="USER_ID" value="@ViewData["UserId"]" />
+            <input type="hidden" name="DOCUMENTID" value="@ViewData["DocumentId"]" />
+            <input type="hidden" name="EXPERIMENT_NUMBER" value="@ViewData["ExperimentNumber"]" />
+            <input type="hidden" name="CENTER_CODE" value="@ViewData["CenterCode"]" />
+            <table class="table table-bordered board" style="font-size: 9pt; font-weight: bold; width: 600px; margin: auto;">
+                <colgroup>
+                    <col style="width:20%">
+                    <col style="width:30%">
+                    <col style="width:20%">
+                    <col style="width:30%">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td style="vertical-align:middle;">샘플번호</td>
+                        <td><input id="inputSampleNumber" name="SAMPLE_NUMBER" type="text" style="width: 100%; height: 25px;" value="@obj.SAMPLE_NUMBER" readonly /></td>
+                        <td style="vertical-align:middle;">관리번호</td>
+                        <td><input id="inputAttrNumber" name="ATTRIBUTE_NUMBER" type="text" style="width: 100%; height: 25px;" value="@obj.ATTRIBUTE_NUMBER" /></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align:middle;">샘플명*</td>
+                        <td><input id="inputSampleName" name="SAMPLE_NAME" type="text" style="width: 100%; height: 25px; " value="@obj.SAMPLE_NAME" /></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align:middle;">샘플정보*</td>
+                        <td colspan="3"><input id="inputSampleInfo" name="CONTENT" type="text" style="width: 100%; height: 25px; " value="@obj.CONTENT" /></td>
+                    </tr>
+                    <tr>
+                        <td>사용시약</td>
+                        <td colspan="3">
+                            <div class="shadow-sm p-3 bg-white rounded" style="width: 100%;">
+                                <button id="btnDel" type="button" class="btn btn-danger btn-sm" style="float:right; font-size: 10px;" onclick="removeRow();">삭제</button>
+                                <button id="btnAdd" type="button" class="btn btn-primary btn-sm" style="float:right; margin-right:5px; font-size: 10px;" onclick="addRow();">추가</button>
+                                <table id="tableReagent" class="table table-borderless option-table" style="width: 100%; margin-left: auto; margin-right: auto; font-size: 8pt; ">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 15%">선택</th>
+                                            <th style="width: 55%">시약명</th>
+                                            <th style="width: 15%">사용량</th>
+                                            <th style="width: 15%">단위</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody_reagent" style="height: 130px;">
+                                        @foreach (var reagent in @ViewData["Reagent"] as List<ReagentModel>)
+                                        {
+                                        <tr id="@reagent.BARCODE" style="@(reagent.CUSTOM ? "background-color: #FFFF9E" : "")">
+                                            <td style="width: 15%; vertical-align: middle;"><input type="checkbox" @(reagent.CHECK ? "checked" : "") /></td>
+                                            <td style="width: 55%"><input type="text" style="width: 100%; @(reagent.CUSTOM ? "" : "background: rgba(0, 0, 0, 0); border: none;")" value="@reagent.PRODUCT_NAME" @(reagent.CUSTOM ? "" : "readonly") /></td>
+                                            <td style="width: 15%"><input type="text" numberOnly style="width: 100%;" value="@reagent.USAGE" /></td>
+                                            <td style="width: 15%"><input type="text" style="width: 100%;" value="@reagent.UNIT" /></td>
+                                        </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align:middle;">사용장비</td>
+                        <td>
+                            <select id="selectEquipment" name="EQUIPMENT_DATA" style="width: 100%; height: 25px; text-align: center;">
+                                <option value="@null">선택</option>
+                                @foreach (var equipment in @ViewData["Equipment"] as List<EquipmentModel>)
+                                {
+                                <!option value="@equipment.ASSET_NAME" @(obj.EQUIPMENT_DATA == @equipment.ASSET_NAME ? "selected" : "")>@equipment.ASSET_NAME</!option>
+                                }
+                            </select>
+                        </td>
+                        <td style="vertical-align:middle;">분석의뢰*</td>
+                        <td>
+                            <select id="selectRequest" name="ANAL_REQ_YN" style="width: 100%; height: 25px; text-align: center;">
+                                <!option value="N" @(obj.ANAL_REQ_YN == "N" ? "selected" : "")>아니오</!option>
+                                <!option value="Y" @(obj.ANAL_REQ_YN == "Y" ? "selected" : "")>예</!option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="flex-container-horizontal" style="justify-content: center; padding: 20px;">
+                <button id="btnRegist" type="submit" class="btn btn-primary btn-sm" style="width: 60px; font-size: 12px; margin-right: 20px;">등록</button>
+                <button type="button" class="btn btn-primary btn-sm" style="width: 60px; font-size: 12px; margin-left: 20px;" onclick="window.close();">닫기</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script language="javascript">
+    $('#form').submit(function (event) {
+        event.preventDefault(); // 자동 submit 방지*/
+        if (!validate()) {
+            return false;
+        }
+
+        // 시약정보 리스트화
+        var lstReagent = new Array();
+        var objReagent = new Object();
+
+        $("#tableReagent input[type=checkbox]").each(function () {
+            var row = $(this).closest("tr");
+
+            var barcode = row.attr('id');
+            var check = $(this).is(':checked');
+            if (barcode == "Custom" || check == true) { // 커스텀인 항목 전부(기록), 체크된 항목 전부
+                var productName = row.find('td:eq(1) input').val();
+                var usage = row.find('td:eq(2) input').val();
+                var unit = row.find('td:eq(3) input').val();
+
+                var obj = new Object();
+                obj.CHECK = check.toString();
+                obj.BARCODE = barcode;
+                obj.PRODUCT_NAME = productName;
+                obj.USAGE = Number(usage).toString();;
+                obj.UNIT = unit;
+                lstReagent.push(obj);
+            }
+        });
+        objReagent.data = lstReagent;
+
+        var formData = $(this).serialize();
+        if (lstReagent.length != 0)
+            formData += '&REAGENT_DATA=' + JSON.stringify(objReagent);
+        $.ajax({
+            url: $(this).attr("action"),
+            type: $(this).attr("method"),
+            data: formData,
+            dataType: "json"
+        }).done(function (response) {
+            if (response.Code == @ConstantsApi.CODE_DATABASE_SUCCESS_REGIST) {
+                alertModal("확인", response.Message, false, function () {
+                    window.opener.popupClose(true, response.Etc01);
+                    window.close();
+                });
+            } else {
+                alertModal("경고", response.Message);
+            }
+        });
+    });
+
+    $(document).on('keyup', 'input:text[numberOnly]', function () {
+        var val = $(this).val();
+        val = val.replace(/[^0-9\.]/g, "");
+        if (val.split('.').length > 2) {
+            val = val.replace(/\.+$/, "");
+        }
+        $(this).val(val);
+    });
+
+    function addRow() {
+        var rowHtml = '<tr id="Custom" style="background-color: #FFFF9E">';
+        rowHtml += '<td style="width: 15%;"><input type="checkbox" /></td>';
+        rowHtml += '<td style="width: 55%"><input type="text" style="width: 100%;" /></td>';
+        rowHtml += '<td style="width: 15%"><input type="text" numberOnly style="width: 100%;" value="0" /></td>';
+        rowHtml += '<td style="width: 15%"><input type="text" style="width: 100%;" /></td>';
+        rowHtml += '</tr>';
+
+        $('#tbody_reagent').append(rowHtml);
+        $('#tbody_reagent').scrollTop($('#tbody_reagent').get(0).scrollHeight);
+    }
+
+    function removeRow() {
+        var chkRemove = true;
+        var count = 0;
+        $("#tableReagent input[type=checkbox]:checked").each(function () {
+            var row = $(this).closest("tr");
+            var barcode = row.attr('id');
+            if (barcode != "Custom") {
+                chkRemove = false;
+                return false;
+            }
+            count++;
+        });
+        if (chkRemove) {
+            if (count <= 0) {
+                alertModal("주의", "삭제할 항목을 선택해주세요.");
+            } else {
+                if (alertConfirm("주의", "정말 삭제하시겠습니까?", "확인", "취소", function () {
+                    $("#tableReagent input[type=checkbox]:checked").each(function () {
+                        var row = $(this).closest("tr");
+                        row.remove();
+                    });
+                }));
+            }
+        } else {
+            alertModal("주의", "연구노트에 등록된 항목이 포함되어 있습니다. 삭제할 수 없습니다.");
+        }
+    }
+
+    function validate() {
+        var chkValidate = true;
+        var message = "";
+
+        if (!$('#inputSampleName').val()) {
+            message = "샘플명을 입력해주세요.";
+            chkValidate = false;
+        } else if (!$('#inputSampleInfo').val()) {
+            message = "샘플정보를 입력해주세요.";
+            chkValidate = false;
+        } else {
+            // 시약정보 체크
+            $("#tableReagent input[type=checkbox]:checked").each(function () {
+                var row = $(this).closest("tr");
+                var productName = row.find('td:eq(1) input').val(); // 시약명. 추가된 항목이 있을 수 있으므로 체크
+                var usage = row.find('td:eq(2) input').val();
+                var unit = row.find('td:eq(3) input').val();
+                if (!productName || !usage || !unit) {
+                    chkValidate = false;
+                    if (!productName) {
+                        message = "시약명이 비어있는 항목이 있습니다.";
+                        return false;
+                    }
+                    if (!usage) {
+                        message = "사용량이 비어있는 항목이 있습니다.";
+                        return false;
+                    }
+                    if (!unit) {
+                        message = "단위가 비어있는 항목이 있습니다.";
+                        return false;
+                    }
+                }
+            });
+        }
+
+        if (!chkValidate)
+            alertModal("주의", message);
+
+        return chkValidate;
+    }
+</script>
